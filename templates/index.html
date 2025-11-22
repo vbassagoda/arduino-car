@@ -22,86 +22,91 @@
             color: #333;
             text-align: center;
         }
-        .form-group {
-            margin: 20px 0;
-        }
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #555;
-        }
-        .radio-group {
+        .button-group {
             display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        input[type="radio"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
         }
         button {
-            width: 100%;
-            padding: 12px;
+            padding: 15px;
             background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #45a049;
         }
+        button:active {
+            transform: scale(0.98);
+        }
         .message {
             margin-top: 20px;
-            padding: 10px;
+            padding: 15px;
             border-radius: 5px;
             text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .message.show {
+            display: block;
         }
         .success {
             background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Arduino Car Control</h1>
-        <form method="POST" action="/">
-            <div class="form-group">
-                <label>Select Direction:</label>
-                <div class="radio-group">
-                    <div class="radio-option">
-                        <input type="radio" id="left" name="direction" value="L" required>
-                        <label for="left">L (Left)</label>
-                    </div>
-                    <div class="radio-option">
-                        <input type="radio" id="right" name="direction" value="R" required>
-                        <label for="right">R (Right)</label>
-                    </div>
-                    <div class="radio-option">
-                        <input type="radio" id="forward" name="direction" value="F" required>
-                        <label for="forward">F (Forward)</label>
-                    </div>
-                </div>
-            </div>
-            <button type="submit">Submit</button>
-        </form>
-        {% if message %}
-        <div class="message success">
-            {{ message }}
+        <div class="button-group">
+            <button onclick="sendDirection('L')">L (Left)</button>
+            <button onclick="sendDirection('R')">Right</button>
+            <button onclick="sendDirection('F')">F (Forward)</button>
         </div>
-        {% endif %}
+        <div id="message" class="message"></div>
     </div>
+
+    <script>
+        async function sendDirection(direction) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.classList.remove('show', 'success', 'error');
+            
+            try {
+                const response = await fetch('/direction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ direction: direction })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    messageDiv.textContent = data.message;
+                    messageDiv.classList.add('show', 'success');
+                } else {
+                    messageDiv.textContent = data.message;
+                    messageDiv.classList.add('show', 'error');
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Error: Could not send direction';
+                messageDiv.classList.add('show', 'error');
+            }
+        }
+    </script>
 </body>
 </html>
