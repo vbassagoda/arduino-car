@@ -24,11 +24,12 @@
         }
         .button-group {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             gap: 15px;
             margin-top: 30px;
         }
         button {
+            flex: 2;
             padding: 15px;
             background-color: #4CAF50;
             color: white;
@@ -72,9 +73,9 @@
     <div class="container">
         <h1>Arduino Car Control</h1>
         <div class="button-group">
-            <button onclick="sendDirection('L')">L (Left)</button>
+            <button onclick="sendDirection('L')">Left</button>
+            <button onclick="sendDirection('F')">Forward</button>
             <button onclick="sendDirection('R')">Right</button>
-            <button onclick="sendDirection('F')">F (Forward)</button>
         </div>
         <div id="message" class="message"></div>
     </div>
