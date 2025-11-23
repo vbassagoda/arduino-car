@@ -15,6 +15,7 @@ void setup() {
     delay(100);
     Serial.print(".");
   }
+  delay(1000);
   Serial.println("\nConnected to WiFi");
   Serial.println(WiFi.localIP());
   udp.begin(PORT);
