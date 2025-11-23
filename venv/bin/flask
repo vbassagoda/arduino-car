@@ -1,4 +1,4 @@
-#!/Users/federicopascual/Documents/programming/arduino-car/venv/bin/python3.13
+#!/Users/v.bassagoda/Documents/arduino-car/venv/bin/python3.11
 # -*- coding: utf-8 -*-
 import re
 import sys
