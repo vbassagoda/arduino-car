@@ -5,7 +5,6 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     """Display the control buttons"""
-    print("Index page loaded")
     return render_template('index.html')
 
 @app.route('/direction', methods=['POST'])
