@@ -6,5 +6,6 @@ Instructions
   #define SSID "[your wifi]"
   #define PASS "[your password]"
 2) connect laptop to arduino and upload code
-3) run python app.py
+3) run .ino file to get the IP from the arduino serial monitor and copy it into the app.py
+run python app.py
 4) open html interface in browser in 0.0.0.0:5000

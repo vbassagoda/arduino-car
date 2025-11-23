@@ -4,7 +4,7 @@ WiFiUDP udp;
 int PORT = 12345;
 char myPacket[255];
 int dataLen;
-String color;
+String direction;
 String response;
 void setup() {
   Serial.begin(9600);
@@ -25,17 +25,20 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  //Serial.println(udp.parsePacket());
+  delay(100);
   if (udp.parsePacket()) {
+    Serial.println("entered if");
     dataLen = udp.available();
     Serial.println(dataLen);
     udp.read(myPacket,255);
     Serial.println(myPacket);
     myPacket[dataLen]=0;
     Serial.println(myPacket);
-    color=String(myPacket);
-    color.trim();
-    Serial.println("Received color: "+color);
-    response ="Here is your "+color+" Marble";  
+    direction=String(myPacket);
+    direction.trim();
+    Serial.println("Received direction: "+direction);
+    response ="Here is your "+direction+" Marble";  
     udp.beginPacket(udp.remoteIP(), udp.remotePort());
     udp.print(response);
     udp.endPacket();
