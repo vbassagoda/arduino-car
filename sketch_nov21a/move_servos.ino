@@ -8,7 +8,7 @@
 
 void setup() {
   // put your setup code here, to run once:
-    Serial.begin(115200);   
+    Serial.begin(9600);   
 
 	 // Set direction pins to output for both motor   
 	 pinMode(IN1_PIN, OUTPUT);   
@@ -23,38 +23,40 @@ void loop() {
   
   delay(4000);
   Serial.println("Set direction FORWARD");
-  moveMotors(HIGH, LOW);  // Both motors forward
+  moveMotors(HIGH, LOW, HIGH, LOW);  // Both motors forward
   delay(400);
 
   Serial.println("Turning motors off");
-  moveMotors(LOW, LOW);   // Both motors stop
-
-  delay(4000);
-  Serial.println("Moving left");
-  moveLeft(HIGH, LOW);
-  delay(400);
-
-  Serial.println("Turning motors off");
-  moveMotors(LOW, LOW);
+  moveMotors(LOW, LOW, LOW, LOW);   // Both motors stop
 
   delay(4000);
   Serial.println("Moving right");
-  moveRight(HIGH, LOW);
+  moveMotors(HIGH, LOW, LOW, LOW);
+  delay(400);
+
+  Serial.println("Turning motors off");
+  moveMotors(LOW, LOW, LOW, LOW);
+
+  delay(4000);
+  Serial.println("Moving left");
+  moveMotors(LOW, LOW, HIGH, LOW);
   delay(400);
   
   Serial.println("Turning motors off");
-  moveMotors(LOW, LOW);
+  moveMotors(LOW, LOW, LOW, LOW);
 }
 
-void moveMotors(int dir1, int dir2) {
+void moveMotors(int dir1, int dir2, int dir3, int dir4) {
   // Motor A
   digitalWrite(IN1_PIN, dir1);
   digitalWrite(IN2_PIN, dir2);
   // Motor B  
-  digitalWrite(IN3_PIN, dir1);
-  digitalWrite(IN4_PIN, dir2);
+  digitalWrite(IN3_PIN, dir3);
+  digitalWrite(IN4_PIN, dir4);
 }
 
+
+/*
 void moveLeft(int dir1, int dir2) {
   // Motor A
   digitalWrite(IN1_PIN, dir1);
@@ -72,3 +74,4 @@ void moveRight(int dir1, int dir2) {
   digitalWrite(IN3_PIN, dir1);
   digitalWrite(IN4_PIN, dir2);
 }
+*/
