@@ -1,3 +1,5 @@
 .DS_Store
 secrets.h
+CameraWebServer/secrets.h
+car_directions/secrets.h
 venv/

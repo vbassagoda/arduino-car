@@ -1,5 +1,5 @@
 // WiFi library
-#include <WiFiS3.h>
+//#include <WiFiS3.h>
 #include "secrets.h"
 WiFiUDP udp;
 
