@@ -6,7 +6,6 @@ HOST_ARDUINO = "172.20.10.2"  # Use Your Arduino's IP. It will print when
                         #You Run the Arduino Server Program
 PORT = 12345            # Must match Arduino’s UDP port
 
-
 # Flask app
 app = Flask(__name__)
 
@@ -21,7 +20,7 @@ def direction():
     data = request.get_json()
     direction = data.get('direction', '').upper()
     
-    if direction in ['L', 'R', 'F']:
+    if direction in ['L', 'R', 'F', 'B']:
         print(f"Direction selected: {direction}")
         print(type(direction))
     

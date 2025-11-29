@@ -1,5 +1,5 @@
 // WiFi library
-//#include <WiFiS3.h>
+#include <WiFiS3.h>
 #include "secrets.h"
 WiFiUDP udp;
 
@@ -54,12 +54,16 @@ void loop() {
     Serial.println("Received direction: "+direction);
 
     // move motors based on direction
-    if (direction == "F") {
+    if (direction == "B") {
       moveMotors(HIGH, LOW, HIGH, LOW);  // Both motors forward
+    } else if (direction == "F") {
+      moveMotors(LOW, HIGH, LOW, HIGH);  // Both motors backward
     } else if (direction == "R") {
-      moveMotors(HIGH, LOW, LOW, LOW);  // Both motors forward
+      moveMotors(LOW, HIGH, LOW, LOW);  // Left motor forward, right motor stop (turn right)
     } else if (direction == "L") {
-      moveMotors(LOW, LOW, HIGH, LOW);  // Both motors forward
+      moveMotors(LOW, LOW, LOW, HIGH);  // Right motor forward, left motor stop (turn left)
+    } else {
+      Serial.println("Unknown direction: " + direction);
     }
     delay(100);
 
