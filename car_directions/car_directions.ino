@@ -59,9 +59,9 @@ void loop() {
     } else if (direction == "F") {
       moveMotors(LOW, HIGH, LOW, HIGH);  // Both motors backward
     } else if (direction == "R") {
-      moveMotors(LOW, HIGH, LOW, LOW);  // Left motor forward, right motor stop (turn right)
+      moveMotors(LOW, LOW, LOW, HIGH);  // Left motor forward, right motor stop (turn right)
     } else if (direction == "L") {
-      moveMotors(LOW, LOW, LOW, HIGH);  // Right motor forward, left motor stop (turn left)
+      moveMotors(LOW, HIGH, LOW, LOW);  // Right motor forward, left motor stop (turn left)
     } else {
       Serial.println("Unknown direction: " + direction);
     }
