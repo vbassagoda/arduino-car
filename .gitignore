@@ -3,3 +3,4 @@ secrets.h
 CameraWebServer/secrets.h
 car_directions/secrets.h
 venv/
+CLAUDE.md
