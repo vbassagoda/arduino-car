@@ -6,7 +6,7 @@ Both arduino and server need to be connected to a phone hotspot or 2.4G wifi
 
 
 Instructions:
-1) add file secrets.h in the same folder as arduino file:
+1) add file secrets.h in the folders CameraWebServer and car_directions:
   #define SSID "[your wifi]"
   #define PASS "[your password]"
 2) connect the laptop to arduino and upload code
