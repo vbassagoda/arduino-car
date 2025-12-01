@@ -67,11 +67,34 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        .speed-control {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .speed-control label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+        .speed-control input[type="range"] {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+        }
+        #speedValue {
+            font-weight: bold;
+            color: #4CAF50;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Arduino Car Control</h1>
+        <div class="speed-control">
+            <label for="speed">Speed: <span id="speedValue">50</span>%</label>
+            <input type="range" id="speed" min="0" max="100" value="50">
+        </div>
         <div class="button-group">
             <button onclick="sendDirection('L')">Left</button>
             <button onclick="sendDirection('F')">Forward</button>
@@ -82,21 +105,27 @@
     </div>
 
     <script>
+        // Update speed display when slider changes
+        document.getElementById('speed').addEventListener('input', function() {
+            document.getElementById('speedValue').textContent = this.value;
+        });
+
         async function sendDirection(direction) {
             const messageDiv = document.getElementById('message');
+            const speed = parseInt(document.getElementById('speed').value);
             messageDiv.classList.remove('show', 'success', 'error');
-            
+
             try {
                 const response = await fetch('/direction', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ direction: direction })
+                    body: JSON.stringify({ direction: direction, speed: speed })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     messageDiv.textContent = data.message;
                     messageDiv.classList.add('show', 'success');

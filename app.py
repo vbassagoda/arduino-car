@@ -19,21 +19,20 @@ def direction():
     """Handle direction button clicks"""
     data = request.get_json()
     direction = data.get('direction', '').upper()
-    
+    speed = data.get('speed', 100)  # Default 100% speed
+
     if direction in ['L', 'R', 'F', 'B']:
-        print(f"Direction selected: {direction}")
-        print(type(direction))
-    
+        print(f"Direction: {direction}, Speed: {speed}%")
+
         # Create a UDP socket
         mySocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         mySocket.settimeout(5.0)  # 5 seconds timeout for responses
-        print("UDP Client started. Enter a direction (L, R, F)")
 
-        # Send the direction to the server
-        sendDirection=direction.encode()
-        print('Sending '+str(sendDirection)+' to HOST',HOST_ARDUINO,PORT)
-        mySocket.sendto(sendDirection, (HOST_ARDUINO, PORT))
-        print('Sent '+direction+' to HOST',HOST_ARDUINO,PORT)
+        # Send direction and speed to Arduino (format: "F,75")
+        packet = f"{direction},{speed}".encode()
+        print(f'Sending {packet} to HOST {HOST_ARDUINO}:{PORT}')
+        mySocket.sendto(packet, (HOST_ARDUINO, PORT))
+        print(f'Sent {direction} at {speed}% to HOST {HOST_ARDUINO}:{PORT}')
 
         # Try to get a response, skip on timeout
         try:
@@ -46,7 +45,7 @@ def direction():
         mySocket.close()
         print("Socket closed")
 
-        return jsonify({'success': True, 'message': f"Selected: {direction}"})
+        return jsonify({'success': True, 'message': f"Selected: {direction} at {speed}%"})
     else:
         return jsonify({'success': False, 'message': "Invalid direction"})
 
