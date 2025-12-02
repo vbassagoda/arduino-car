@@ -1,1 +1,8 @@
 Flask==3.0.0
+opencv-python
+numpy
+ultralytics # For YOLOv8
+# segment-anything # For SAM
+# torch # For SAM
+# torchvision # For SAM
+# pillow # For image processing with SAM
