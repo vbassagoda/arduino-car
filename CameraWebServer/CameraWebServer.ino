@@ -9,9 +9,6 @@
 // ===========================
 // Enter your WiFi credentials
 // ===========================
-const char *ssid = SSID;
-const char *password = PASS;
-
 
 void startCameraServer();
 void setupLedFlash();
@@ -107,7 +104,7 @@ void setup() {
   setupLedFlash();
 #endif
 
-  WiFi.begin(ssid, password);
+  WiFi.begin(SSID, PASS);
   WiFi.setSleep(false);
 
   Serial.print("WiFi connecting");
