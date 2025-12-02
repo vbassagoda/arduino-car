@@ -86,20 +86,80 @@
             font-weight: bold;
             color: #4CAF50;
         }
+        .object-select {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .object-select label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+        .object-select select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .object-select select:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+        .section {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            text-align: center;
+        }
+        .manual-section {
+            background-color: #e8f5e9;
+        }
+        .manual-section h2 {
+            color: #2e7d32;
+        }
+        .auto-section {
+            background-color: #e3f2fd;
+        }
+        .auto-section h2 {
+            color: #1565c0;
+        }
+        .auto-section .object-select {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Arduino Car Control</h1>
-        <div class="speed-control">
-            <label for="speed">Speed: <span id="speedValue">50</span>%</label>
-            <input type="range" id="speed" min="0" max="100" value="50">
+        <div class="section manual-section">
+            <h2>Manual Control</h2>
+            <div class="speed-control">
+                <label for="speed">Speed: <span id="speedValue">50</span>%</label>
+                <input type="range" id="speed" min="0" max="100" value="50">
+            </div>
+            <div class="button-group">
+                <button onclick="sendDirection('L')">Left</button>
+                <button onclick="sendDirection('F')">Forward</button>
+                <button onclick="sendDirection('R')">Right</button>
+                <button onclick="sendDirection('B')">Backward</button>
+            </div>
         </div>
-        <div class="button-group">
-            <button onclick="sendDirection('L')">Left</button>
-            <button onclick="sendDirection('F')">Forward</button>
-            <button onclick="sendDirection('R')">Right</button>
-            <button onclick="sendDirection('B')">Backward</button>
+        <div class="section auto-section">
+            <h2>Self Driving</h2>
+            <div class="object-select">
+                <select id="objectSelect" onchange="sendObjectSelection(this.value)">
+                    <option value="" disabled selected>Select object as target destination...</option>
+                    <option value="person">🧑 Person</option>
+                    <option value="tv">📺 TV</option>
+                </select>
+            </div>
         </div>
         <div id="message" class="message"></div>
     </div>
@@ -135,6 +195,36 @@
                 }
             } catch (error) {
                 messageDiv.textContent = 'Error: Could not send direction';
+                messageDiv.classList.add('show', 'error');
+            }
+        }
+
+        async function sendObjectSelection(objectType) {
+            if (!objectType) return;
+
+            const messageDiv = document.getElementById('message');
+            messageDiv.classList.remove('show', 'success', 'error');
+
+            try {
+                const response = await fetch('/track-object', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ object: objectType })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    messageDiv.textContent = data.message;
+                    messageDiv.classList.add('show', 'success');
+                } else {
+                    messageDiv.textContent = data.message;
+                    messageDiv.classList.add('show', 'error');
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Error: Could not send object selection';
                 messageDiv.classList.add('show', 'error');
             }
         }
