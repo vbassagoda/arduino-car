@@ -3,3 +3,7 @@ secrets.h
 CameraWebServer/secrets.h
 car_directions/secrets.h
 venv/
+CameraWebServer/video_test.MP4
+CameraWebServer/sam_vit_h_4b8939.pth
+CameraWebServer/sam3_image.py
+CameraWebServer/yolov8n.pt
