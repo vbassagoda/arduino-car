@@ -1,18 +1,22 @@
 import socket
 from flask import Flask, render_template, request, jsonify
 
-# Arduino’s IP address (from Arduino Serial Monitor)
+# Arduino's IP address (from Arduino Serial Monitor)
 HOST_ARDUINO = "172.20.10.2"  # Use Your Arduino's IP. It will print when
                         #You Run the Arduino Server Program
-PORT = 12345            # Must match Arduino’s UDP port
+PORT = 12345            # Must match Arduino's UDP port
+
+# ESP32-CAM IP address (from Serial Monitor after uploading CameraWebServer)
+HOST_CAMERA = "172.20.10.3"  # Update with your ESP32-CAM's IP
+CAMERA_STREAM_URL = f"http://{HOST_CAMERA}:81/stream"
 
 # Flask app
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    """Display the control buttons"""
-    return render_template('index.html')
+    """Display the control interface"""
+    return render_template('index.html', camera_url=CAMERA_STREAM_URL)
 
 @app.route('/direction', methods=['POST'])
 def direction():

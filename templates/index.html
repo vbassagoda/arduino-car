@@ -4,230 +4,1167 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arduino Car Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
     <style>
+        /* ========================================
+           CSS CUSTOM PROPERTIES (Design Tokens)
+           ======================================== */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --bg-glass: rgba(18, 18, 26, 0.8);
+
+            --accent-primary: #00f0ff;
+            --accent-secondary: #ff00aa;
+            --accent-success: #00ff88;
+            --accent-warning: #ffaa00;
+            --accent-danger: #ff4466;
+
+            --text-primary: #ffffff;
+            --text-secondary: #8888aa;
+            --text-muted: #555566;
+
+            --glow-primary: 0 0 20px rgba(0, 240, 255, 0.5);
+            --glow-secondary: 0 0 20px rgba(255, 0, 170, 0.5);
+            --glow-success: 0 0 20px rgba(0, 255, 136, 0.5);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+
+            --transition-fast: 150ms ease;
+            --transition-normal: 250ms ease;
+            --transition-slow: 400ms ease;
+
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        /* ========================================
+           RESET & BASE STYLES
+           ======================================== */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 500px;
-            margin: 50px auto;
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* Subtle grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* ========================================
+           LAYOUT
+           ======================================== */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        .button-group {
             display: flex;
-            flex-direction: row;
-            gap: 15px;
-            margin-top: 30px;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 100vh;
         }
-        button {
-            flex: 2;
-            padding: 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        button:hover {
-            background-color: #45a049;
+
+        .controls-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
-        button:active {
-            transform: scale(0.98);
+
+        /* Desktop: Side-by-side layout */
+        @media (min-width: 900px) {
+            .main-content {
+                display: grid;
+                grid-template-columns: 1.2fr 1fr;
+                gap: 24px;
+                align-items: start;
+            }
+
+            .camera-section {
+                aspect-ratio: auto;
+                min-height: 500px;
+                height: 100%;
+            }
         }
-        .message {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-            font-weight: bold;
+
+        /* ========================================
+           HEADER
+           ======================================== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(0, 240, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--accent-primary), var(--text-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-success);
+            box-shadow: var(--glow-success);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-dot.disconnected {
+            background: var(--accent-danger);
+            box-shadow: 0 0 20px rgba(255, 68, 102, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.9); }
+        }
+
+        /* ========================================
+           CAMERA FEED
+           ======================================== */
+        .camera-section {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 2px solid rgba(0, 240, 255, 0.2);
+            box-shadow:
+                var(--glow-primary),
+                inset 0 0 60px rgba(0, 240, 255, 0.05);
+        }
+
+        .camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            background: var(--bg-secondary);
+        }
+
+        .camera-placeholder.hidden {
             display: none;
         }
-        .message.show {
-            display: block;
+
+        .no-signal-icon {
+            width: 80px;
+            height: 80px;
+            border: 3px solid var(--text-muted);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--text-muted);
         }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+
+        .no-signal-text {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            text-transform: uppercase;
         }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+
+        /* Camera toggle button */
+        .camera-toggle {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 10;
+            width: 36px;
+            height: 36px;
+            background: rgba(18, 18, 26, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
         }
-        .speed-control {
-            margin-bottom: 20px;
+
+        .camera-toggle:hover {
+            background: rgba(0, 240, 255, 0.15);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+
+        .camera-toggle.off {
+            border-color: rgba(255, 68, 102, 0.5);
+        }
+
+        .camera-toggle.off:hover {
+            background: rgba(255, 68, 102, 0.15);
+            box-shadow: 0 0 15px rgba(255, 68, 102, 0.3);
+        }
+
+        .camera-toggle-icon {
+            font-size: 1rem;
+            transition: filter var(--transition-fast);
+        }
+
+        .camera-toggle.off .camera-toggle-icon {
+            filter: grayscale(1) opacity(0.5);
+        }
+
+        /* Scanline effect */
+        .camera-section::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.1) 2px,
+                rgba(0, 0, 0, 0.1) 4px
+            );
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        /* Corner decorations */
+        .camera-section::before {
+            content: 'REC';
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            padding: 4px 12px;
+            background: var(--accent-danger);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            z-index: 10;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* ========================================
+           CONTROLS PANEL
+           ======================================== */
+        .controls-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 24px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(0, 240, 255, 0.1);
+        }
+
+        .panel-title {
+            grid-column: 1 / -1;
+            font-family: var(--font-display);
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent-primary);
             text-align: center;
+            margin-bottom: 8px;
         }
-        .speed-control label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 18px;
-            color: #333;
+
+        /* ========================================
+           D-PAD CONTROL
+           ======================================== */
+        .dpad-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
         }
-        .speed-control input[type="range"] {
+
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            grid-template-rows: repeat(3, 60px);
+            gap: 6px;
+        }
+
+        .dpad-btn {
+            background: var(--bg-tertiary);
+            border: 2px solid rgba(0, 240, 255, 0.2);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dpad-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--accent-primary), transparent);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .dpad-btn:hover {
+            border-color: var(--accent-primary);
+            box-shadow: var(--glow-primary);
+        }
+
+        .dpad-btn:hover::before {
+            opacity: 0.1;
+        }
+
+        .dpad-btn:active {
+            transform: scale(0.95);
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        .dpad-btn:active::before {
+            opacity: 0.3;
+        }
+
+        .dpad-btn.up { grid-column: 2; grid-row: 1; }
+        .dpad-btn.left { grid-column: 1; grid-row: 2; }
+        .dpad-btn.right { grid-column: 3; grid-row: 2; }
+        .dpad-btn.down { grid-column: 2; grid-row: 3; }
+
+        .dpad-center {
+            grid-column: 2;
+            grid-row: 2;
+            background: var(--bg-secondary);
+            border: 2px solid rgba(0, 240, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dpad-center-dot {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            box-shadow: var(--glow-primary);
+        }
+
+        /* ========================================
+           SPEED GAUGE
+           ======================================== */
+        .gauge-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .speed-gauge {
+            position: relative;
+            width: 180px;
+            height: 180px;
+        }
+
+        .gauge-svg {
+            transform: rotate(-90deg);
             width: 100%;
+            height: 100%;
+        }
+
+        .gauge-bg {
+            fill: none;
+            stroke: var(--bg-tertiary);
+            stroke-width: 12;
+        }
+
+        .gauge-progress {
+            fill: none;
+            stroke: url(#gaugeGradient);
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 440;
+            stroke-dashoffset: 440;
+            transition: stroke-dashoffset var(--transition-normal);
+        }
+
+        .gauge-value {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-number {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(180deg, var(--text-primary), var(--accent-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gauge-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .speed-slider {
+            width: 100%;
+            max-width: 180px;
             height: 8px;
-            cursor: pointer;
-        }
-        #speedValue {
-            font-weight: bold;
-            color: #4CAF50;
-        }
-        .object-select {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .object-select label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 18px;
-            color: #333;
-        }
-        .object-select select {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .object-select select:focus {
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-full);
             outline: none;
-            border-color: #2196F3;
+            cursor: pointer;
         }
-        .section {
-            padding: 20px;
-            border-radius: 8px;
+
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: var(--glow-primary);
+            transition: transform var(--transition-fast);
+        }
+
+        .speed-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .speed-slider::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-primary);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: var(--glow-primary);
+        }
+
+        /* ========================================
+           SELF-DRIVING SECTION
+           ======================================== */
+        .autodrive-section {
+            padding: 24px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 0, 170, 0.15);
+        }
+
+        .autodrive-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 20px;
         }
-        .section h2 {
-            margin: 0 0 15px 0;
-            font-size: 18px;
-            text-align: center;
+
+        .autodrive-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        .manual-section {
-            background-color: #e8f5e9;
+
+        .autodrive-title h2 {
+            font-family: var(--font-display);
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent-secondary);
         }
-        .manual-section h2 {
-            color: #2e7d32;
+
+        .autodrive-badge {
+            padding: 4px 10px;
+            background: rgba(255, 0, 170, 0.15);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        .auto-section {
-            background-color: #e3f2fd;
+
+        .autodrive-controls {
+            display: flex;
+            gap: 12px;
         }
-        .auto-section h2 {
-            color: #1565c0;
+
+        .target-select {
+            flex: 1;
+            padding: 14px 18px;
+            background: var(--bg-tertiary);
+            border: 2px solid rgba(255, 0, 170, 0.2);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238888aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 48px;
         }
-        .auto-section .object-select {
-            margin-bottom: 0;
+
+        .target-select:hover {
+            border-color: var(--accent-secondary);
+        }
+
+        .target-select:focus {
+            outline: none;
+            border-color: var(--accent-secondary);
+            box-shadow: var(--glow-secondary);
+        }
+
+        .target-select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 12px;
+        }
+
+        .engage-btn {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--accent-secondary), #cc0088);
+            border: none;
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-display);
+            font-size: 0.875rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .engage-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-secondary);
+        }
+
+        .engage-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .engage-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ========================================
+           STATUS MESSAGE PANEL
+           ======================================== */
+        .status-message {
+            padding: 18px 24px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            border: 2px solid rgba(0, 240, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 1.05rem;
+            color: var(--text-primary);
+            transition: all var(--transition-normal);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+        }
+
+        .status-icon {
+            font-size: 1.4rem;
+            line-height: 1;
+            color: var(--accent-primary);
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .status-text {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .status-message.success {
+            border-color: var(--accent-success);
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.25);
+        }
+
+        .status-message.success .status-icon {
+            color: var(--accent-success);
+        }
+
+        .status-message.error {
+            border-color: var(--accent-danger);
+            box-shadow: 0 0 25px rgba(255, 68, 102, 0.25);
+        }
+
+        .status-message.error .status-icon {
+            color: var(--accent-danger);
+        }
+
+        .status-message.pulse {
+            animation: statusPulse 0.4s ease;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.015); }
+        }
+
+        /* ========================================
+           RESPONSIVE DESIGN
+           ======================================== */
+        @media (max-width: 640px) {
+            .app-container {
+                padding: 10px;
+                gap: 12px;
+            }
+
+            .header {
+                flex-direction: row;
+                justify-content: space-between;
+                padding: 12px 16px;
+            }
+
+            .logo-text {
+                font-size: 0.9rem;
+            }
+
+            .status-indicator {
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+
+            .camera-section {
+                aspect-ratio: 16 / 10;
+            }
+
+            .controls-panel {
+                grid-template-columns: 1fr 1fr;
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .panel-title {
+                font-size: 0.7rem;
+                margin-bottom: 4px;
+            }
+
+            .dpad-container {
+                gap: 8px;
+            }
+
+            .dpad {
+                grid-template-columns: repeat(3, 44px);
+                grid-template-rows: repeat(3, 44px);
+                gap: 4px;
+            }
+
+            .dpad-btn {
+                font-size: 0.9rem;
+            }
+
+            .gauge-container {
+                gap: 10px;
+            }
+
+            .speed-gauge {
+                width: 115px;
+                height: 115px;
+            }
+
+            .gauge-number {
+                font-size: 1.8rem;
+            }
+
+            .gauge-label {
+                font-size: 0.65rem;
+            }
+
+            .speed-slider {
+                max-width: 115px;
+            }
+
+            .autodrive-section {
+                padding: 12px;
+            }
+
+            .autodrive-header {
+                margin-bottom: 10px;
+            }
+
+            .autodrive-title h2 {
+                font-size: 0.7rem;
+            }
+
+            .autodrive-badge {
+                font-size: 0.6rem;
+                padding: 3px 8px;
+            }
+
+            .autodrive-controls {
+                flex-direction: row;
+                gap: 8px;
+            }
+
+            .target-select {
+                padding: 10px 12px;
+                font-size: 0.85rem;
+                padding-right: 36px;
+                background-size: 16px;
+            }
+
+            .engage-btn {
+                padding: 10px 16px;
+                font-size: 0.75rem;
+            }
+
+            .status-message {
+                padding: 12px 14px;
+                font-size: 0.85rem;
+                gap: 10px;
+            }
+
+            .status-icon {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 900px) {
+            .controls-panel {
+                padding: 20px;
+            }
+        }
+
+        /* Reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Arduino Car Control</h1>
-        <div class="section manual-section">
-            <h2>Manual Control</h2>
-            <div class="speed-control">
-                <label for="speed">Speed: <span id="speedValue">50</span>%</label>
-                <input type="range" id="speed" min="0" max="100" value="50">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">🚗</div>
+                <span class="logo-text">Car Control</span>
             </div>
-            <div class="button-group">
-                <button onclick="sendDirection('L')">Left</button>
-                <button onclick="sendDirection('F')">Forward</button>
-                <button onclick="sendDirection('R')">Right</button>
-                <button onclick="sendDirection('B')">Backward</button>
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Connected</span>
             </div>
-        </div>
-        <div class="section auto-section">
-            <h2>Self Driving</h2>
-            <div class="object-select">
-                <select id="objectSelect" onchange="sendObjectSelection(this.value)">
-                    <option value="" disabled selected>Select object as target destination...</option>
-                    <option value="person">🧑 Person</option>
-                    <option value="tv">📺 TV</option>
-                </select>
+        </header>
+
+        <!-- Main Content: Camera + Controls -->
+        <main class="main-content">
+            <!-- Camera Feed -->
+            <section class="camera-section" aria-label="Live camera feed">
+                <button class="camera-toggle" id="cameraToggle" onclick="toggleCamera()" aria-label="Toggle camera">
+                    <span class="camera-toggle-icon" id="cameraToggleIcon">📷</span>
+                </button>
+                <img
+                    src="{{ camera_url }}"
+                    alt="Live camera feed from car"
+                    class="camera-feed"
+                    id="cameraFeed"
+                    onerror="handleCameraError()"
+                    onload="handleCameraLoad()"
+                >
+                <div class="camera-placeholder" id="cameraPlaceholder">
+                    <div class="no-signal-icon">📡</div>
+                    <span class="no-signal-text">No Signal</span>
+                </div>
+            </section>
+
+            <!-- Controls Column -->
+            <div class="controls-column">
+                <!-- Controls Panel -->
+                <section class="controls-panel" aria-label="Manual controls">
+                    <h2 class="panel-title">Manual Control</h2>
+
+                    <!-- D-Pad -->
+                    <div class="dpad-container">
+                        <div class="dpad" role="group" aria-label="Direction controls">
+                            <button class="dpad-btn up" onclick="sendDirection('F')" aria-label="Forward">▲</button>
+                            <button class="dpad-btn left" onclick="sendDirection('L')" aria-label="Left">◄</button>
+                            <div class="dpad-center"><div class="dpad-center-dot"></div></div>
+                            <button class="dpad-btn right" onclick="sendDirection('R')" aria-label="Right">►</button>
+                            <button class="dpad-btn down" onclick="sendDirection('B')" aria-label="Backward">▼</button>
+                        </div>
+                    </div>
+
+                    <!-- Speed Gauge -->
+                    <div class="gauge-container">
+                        <div class="speed-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 160 160">
+                                <defs>
+                                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#00ff88" />
+                                        <stop offset="50%" stop-color="#00f0ff" />
+                                        <stop offset="100%" stop-color="#ff00aa" />
+                                    </linearGradient>
+                                </defs>
+                                <circle class="gauge-bg" cx="80" cy="80" r="70" />
+                                <circle class="gauge-progress" id="gaugeProgress" cx="80" cy="80" r="70" />
+                            </svg>
+                            <div class="gauge-value">
+                                <span class="gauge-number" id="speedDisplay">50</span>
+                                <span class="gauge-label">Speed %</span>
+                            </div>
+                        </div>
+                        <input
+                            type="range"
+                            id="speedSlider"
+                            class="speed-slider"
+                            min="0"
+                            max="100"
+                            value="50"
+                            aria-label="Speed control"
+                        >
+                    </div>
+                </section>
+
+                <!-- Self-Driving Section -->
+                <section class="autodrive-section" aria-label="Self-driving controls">
+                    <div class="autodrive-header">
+                        <div class="autodrive-title">
+                            <h2>Self Driving</h2>
+                            <span class="autodrive-badge">Beta</span>
+                        </div>
+                    </div>
+                    <div class="autodrive-controls">
+                        <select id="targetSelect" class="target-select" aria-label="Select target object">
+                            <option value="" disabled selected>Select target...</option>
+                            <option value="person">🧑 Person</option>
+                            <option value="tv">📺 TV</option>
+                        </select>
+                        <button class="engage-btn" id="engageBtn" onclick="engageAutoDrive()" disabled>
+                            Engage
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Status Message -->
+                <div class="status-message" id="statusMessage" aria-live="polite">
+                    <span class="status-icon" id="messageIcon">◉</span>
+                    <span class="status-text" id="messageText">Ready to drive</span>
+                </div>
             </div>
-        </div>
-        <div id="message" class="message"></div>
+        </main>
     </div>
 
     <script>
-        // Update speed display when slider changes
-        document.getElementById('speed').addEventListener('input', function() {
-            document.getElementById('speedValue').textContent = this.value;
+        // ========================================
+        // STATE & ELEMENTS
+        // ========================================
+        const elements = {
+            speedSlider: document.getElementById('speedSlider'),
+            speedDisplay: document.getElementById('speedDisplay'),
+            gaugeProgress: document.getElementById('gaugeProgress'),
+            targetSelect: document.getElementById('targetSelect'),
+            engageBtn: document.getElementById('engageBtn'),
+            statusDot: document.getElementById('statusDot'),
+            statusText: document.getElementById('statusText'),
+            cameraFeed: document.getElementById('cameraFeed'),
+            cameraPlaceholder: document.getElementById('cameraPlaceholder'),
+            cameraToggle: document.getElementById('cameraToggle'),
+            statusMessage: document.getElementById('statusMessage'),
+            messageIcon: document.getElementById('messageIcon'),
+            messageText: document.getElementById('messageText')
+        };
+
+        // Gauge circumference (2 * PI * radius)
+        const GAUGE_CIRCUMFERENCE = 2 * Math.PI * 70;
+
+        // ========================================
+        // SPEED GAUGE
+        // ========================================
+        function updateSpeedGauge(value) {
+            const percentage = value / 100;
+            const offset = GAUGE_CIRCUMFERENCE * (1 - percentage);
+            elements.gaugeProgress.style.strokeDashoffset = offset;
+            elements.speedDisplay.textContent = value;
+        }
+
+        elements.speedSlider.addEventListener('input', function() {
+            updateSpeedGauge(parseInt(this.value));
         });
 
+        // Initialize gauge
+        updateSpeedGauge(parseInt(elements.speedSlider.value));
+
+        // ========================================
+        // STATUS MESSAGE
+        // ========================================
+        function showStatus(message, type = 'info') {
+            // Update message content
+            elements.messageText.textContent = message;
+
+            // Update icon based on type
+            const icons = {
+                success: '✓',
+                error: '✕',
+                info: '◉'
+            };
+            elements.messageIcon.textContent = icons[type] || icons.info;
+
+            // Update styling
+            elements.statusMessage.classList.remove('success', 'error', 'pulse');
+            if (type === 'success' || type === 'error') {
+                elements.statusMessage.classList.add(type);
+            }
+
+            // Trigger pulse animation
+            requestAnimationFrame(() => {
+                elements.statusMessage.classList.add('pulse');
+            });
+        }
+
+        // ========================================
+        // CAMERA HANDLING
+        // ========================================
+        const cameraUrl = '{{ camera_url }}';
+        let cameraEnabled = true;
+
+        function handleCameraError() {
+            elements.cameraPlaceholder.classList.remove('hidden');
+            elements.statusDot.classList.add('disconnected');
+            elements.statusText.textContent = 'Camera Offline';
+        }
+
+        function handleCameraLoad() {
+            elements.cameraPlaceholder.classList.add('hidden');
+            elements.statusDot.classList.remove('disconnected');
+            elements.statusText.textContent = 'Connected';
+        }
+
+        function toggleCamera() {
+            cameraEnabled = !cameraEnabled;
+
+            if (cameraEnabled) {
+                elements.cameraFeed.src = cameraUrl;
+                elements.cameraToggle.classList.remove('off');
+                elements.cameraPlaceholder.classList.add('hidden');
+            } else {
+                elements.cameraFeed.src = '';
+                elements.cameraToggle.classList.add('off');
+                elements.cameraPlaceholder.classList.remove('hidden');
+            }
+        }
+
+        // ========================================
+        // DIRECTION CONTROL
+        // ========================================
         async function sendDirection(direction) {
-            const messageDiv = document.getElementById('message');
-            const speed = parseInt(document.getElementById('speed').value);
-            messageDiv.classList.remove('show', 'success', 'error');
+            const speed = parseInt(elements.speedSlider.value);
 
             try {
                 const response = await fetch('/direction', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ direction: direction, speed: speed })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ direction, speed })
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
-                    messageDiv.textContent = data.message;
-                    messageDiv.classList.add('show', 'success');
+                    showStatus(data.message, 'success');
                 } else {
-                    messageDiv.textContent = data.message;
-                    messageDiv.classList.add('show', 'error');
+                    showStatus(data.message, 'error');
                 }
             } catch (error) {
-                messageDiv.textContent = 'Error: Could not send direction';
-                messageDiv.classList.add('show', 'error');
+                showStatus('Connection error', 'error');
+                elements.statusDot.classList.add('disconnected');
+                elements.statusText.textContent = 'Disconnected';
             }
         }
 
-        async function sendObjectSelection(objectType) {
-            if (!objectType) return;
+        // ========================================
+        // SELF-DRIVING
+        // ========================================
+        elements.targetSelect.addEventListener('change', function() {
+            elements.engageBtn.disabled = !this.value;
+        });
 
-            const messageDiv = document.getElementById('message');
-            messageDiv.classList.remove('show', 'success', 'error');
+        async function engageAutoDrive() {
+            const target = elements.targetSelect.value;
+            if (!target) return;
+
+            elements.engageBtn.disabled = true;
+            elements.engageBtn.textContent = 'Engaging...';
 
             try {
                 const response = await fetch('/track-object', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ object: objectType })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ object: target })
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
-                    messageDiv.textContent = data.message;
-                    messageDiv.classList.add('show', 'success');
+                    showStatus(data.message, 'success');
+                    elements.engageBtn.textContent = 'Active';
                 } else {
-                    messageDiv.textContent = data.message;
-                    messageDiv.classList.add('show', 'error');
+                    showStatus(data.message, 'error');
+                    elements.engageBtn.textContent = 'Engage';
+                    elements.engageBtn.disabled = false;
                 }
             } catch (error) {
-                messageDiv.textContent = 'Error: Could not send object selection';
-                messageDiv.classList.add('show', 'error');
+                showStatus('Failed to engage self-driving', 'error');
+                elements.engageBtn.textContent = 'Engage';
+                elements.engageBtn.disabled = false;
             }
         }
+
+        // ========================================
+        // KEYBOARD CONTROLS
+        // ========================================
+        document.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    e.preventDefault();
+                    sendDirection('F');
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    e.preventDefault();
+                    sendDirection('B');
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    e.preventDefault();
+                    sendDirection('L');
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    e.preventDefault();
+                    sendDirection('R');
+                    break;
+            }
+        });
     </script>
 </body>
 </html>

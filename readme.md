@@ -12,4 +12,14 @@ Instructions:
 2) connect the laptop to arduino and upload code
 3) run .ino file to get the IP from the arduino serial monitor and copy it into the app.py
 4) run python app.py
-5) open html interface in browser in 0.0.0.0:5000
+5) open html interface in browser in 0.0.0.0:5007
+
+## Design
+
+The web interface features a **Dark & Futuristic** aesthetic:
+- Neon cyan (#00f0ff) and magenta (#ff00aa) accents
+- Glassmorphism panels with backdrop blur
+- High-tech control center inspired layout
+- Circular speed gauge with gradient arc
+- D-pad style directional controls
+- Responsive design for mobile and desktop
