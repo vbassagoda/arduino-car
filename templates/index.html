@@ -262,10 +262,10 @@
             elements.engageBtn.textContent = 'Engaging...';
 
             try {
-                const response = await fetch('/track-object', {
+                const response = await fetch('/self-drive-to-object', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ object: target })
+                    body: JSON.stringify({ object_name: target })
                 });
 
                 const data = await response.json();

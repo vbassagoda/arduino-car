@@ -54,22 +54,22 @@ def direction():
         return jsonify({'success': False, 'message': "Invalid direction"})
 
 
-@app.route('/track-object', methods=['POST'])
-def track_object():
-    """Handle object selection for auto-tracking"""
+@app.route('/self-drive-to-object', methods=['POST'])
+def self_drive_to_object():
+    """Handle self-driving to object"""
     data = request.get_json()
-    object_type = data.get('object', '').lower()
+    object_name = data.get('object_name', '').lower()
 
-    if object_type in ['person', 'tv']:
-        print(f"Tracking object: {object_type}")
+    if object_name in ['person', 'tv']:
+        print(f"Self driving to object: {object_name}")
         return jsonify({
             'success': True,
-            'message': f'Self driving towards {object_type}'
+            'message': f'Self driving to {object_name}'
         })
     else:
         return jsonify({
             'success': False,
-            'message': 'Invalid object type'
+            'message': 'Invalid object name: ' + object_name
         }), 400
 
 
