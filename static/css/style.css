@@ -1,3 +1,31 @@
+/*
+ * ========================================
+ * DESIGN SYSTEM: Dark & Futuristic
+ * ========================================
+ *
+ * Visual Style:
+ *   - Dark sci-fi aesthetic with high-tech control center vibes
+ *   - Glassmorphism panels with backdrop blur effects
+ *   - Neon glow accents and subtle animations
+ *
+ * Color Palette:
+ *   - Primary accent: Neon cyan (#00f0ff)
+ *   - Secondary accent: Magenta (#ff00aa)
+ *   - Backgrounds: Deep dark (#0a0a0f → #1a1a25)
+ *
+ * Key Components:
+ *   - Circular speed gauge with gradient arc
+ *   - D-pad style directional controls
+ *   - Scanline overlay on camera feed
+ *
+ * Typography:
+ *   - Display: Orbitron (headings, labels)
+ *   - Body: Inter (general text)
+ *
+ * Responsive: Mobile-first, optimized for both phone and desktop
+ * ========================================
+ */
+
 /* ========================================
    CSS CUSTOM PROPERTIES (Design Tokens)
    ======================================== */
