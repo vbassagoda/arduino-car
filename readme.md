@@ -12,4 +12,4 @@ Instructions:
 2) connect the laptop to arduino and upload code
 3) run .ino file to get the IP from the arduino serial monitor and copy it into the app.py
 4) run python app.py
-5) open html interface in browser in 0.0.0.0:5000
+5) open html interface in browser in 0.0.0.0:5007

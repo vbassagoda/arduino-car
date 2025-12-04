@@ -1,18 +1,22 @@
 import socket
 from flask import Flask, render_template, request, jsonify
 
-# Arduino’s IP address (from Arduino Serial Monitor)
+# Arduino's IP address (from Arduino Serial Monitor)
 HOST_ARDUINO = "172.20.10.2"  # Use Your Arduino's IP. It will print when
                         #You Run the Arduino Server Program
-PORT = 12345            # Must match Arduino’s UDP port
+PORT = 12345            # Must match Arduino's UDP port
+
+# ESP32-CAM IP address (from Serial Monitor after uploading CameraWebServer)
+HOST_CAMERA = "172.20.10.3"  # Update with your ESP32-CAM's IP
+CAMERA_STREAM_URL = f"http://{HOST_CAMERA}:81/stream"
 
 # Flask app
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    """Display the control buttons"""
-    return render_template('index.html')
+    """Display the control interface"""
+    return render_template('index.html', camera_url=CAMERA_STREAM_URL)
 
 @app.route('/direction', methods=['POST'])
 def direction():
@@ -48,6 +52,25 @@ def direction():
         return jsonify({'success': True, 'message': f"Selected: {direction} at {speed}%"})
     else:
         return jsonify({'success': False, 'message': "Invalid direction"})
+
+
+@app.route('/self-drive-to-object', methods=['POST'])
+def self_drive_to_object():
+    """Handle self-driving to object"""
+    data = request.get_json()
+    object_name = data.get('object_name', '').lower()
+
+    if object_name in ['person', 'tv']:
+        print(f"Self driving to object: {object_name}")
+        return jsonify({
+            'success': True,
+            'message': f'Self driving to {object_name}'
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': 'Invalid object name: ' + object_name
+        }), 400
 
 
 if __name__ == '__main__':
