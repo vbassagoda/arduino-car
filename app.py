@@ -18,14 +18,11 @@ def index():
     """Display the control interface"""
     return render_template('index.html', camera_url=CAMERA_STREAM_URL)
 
-@app.route('/direction', methods=['POST'])
-def direction():
-    """Handle direction button clicks"""
-    data = request.get_json()
-    direction = data.get('direction', '').upper()
-    speed = data.get('speed', 100)  # Default 100% speed
+def send_direction_to_arduino(direction_value, speed):
+    """Send direction command to Arduino via UDP"""
+    direction_upper = direction_value.upper()
 
-    if direction in ['L', 'R', 'F', 'B']:
+    if direction in ["L", "R", "F", "B"]:
         print(f"Direction: {direction}, Speed: {speed}%")
 
         # Create a UDP socket
@@ -48,11 +45,24 @@ def direction():
         # Close the socket
         mySocket.close()
         print("Socket closed")
+        return True
+    else:
+        return False
 
+
+@app.route('/direction', methods=['POST'])
+def direction():
+    """Handle direction button clicks"""
+    data = request.get_json()
+    direction = data.get('direction', '').upper()
+    speed = data.get('speed', 100)  # Default 100% speed
+    
+    direction_sent = send_direction_to_arduino(direction, speed)
+    
+    if direction_sent:
         return jsonify({'success': True, 'message': f"Selected: {direction} at {speed}%"})
     else:
         return jsonify({'success': False, 'message': "Invalid direction"})
-
 
 @app.route('/self-drive-to-object', methods=['POST'])
 def self_drive_to_object():
@@ -62,10 +72,27 @@ def self_drive_to_object():
 
     if object_name in ['person', 'tv']:
         print(f"Self driving to object: {object_name}")
-        return jsonify({
-            'success': True,
-            'message': f'Self driving to {object_name}'
-        })
+
+        #call yolo_inference.py to get the object detection
+        object_detected = False
+        turns = 0
+        while turns < 6 and object_detected == False:
+            object_detected = yolo_inference.get_object_detection(object_name, max_frames = 3)
+            if object_detected:
+                print(f"object detected: {object_name}") 
+                return jsonify({
+                    'success': True,
+                    'message': f'Found {object_name}'
+                })
+            else:
+                print(f"No object detected: {object_name}")
+                direction_sent = send_direction_to_arduino("R", 100)
+                turns += 1
+
+                return jsonify({
+                    'success': False,
+                    'message': f'Mission failed: {object_name} not found :('
+                })
     else:
         return jsonify({
             'success': False,
