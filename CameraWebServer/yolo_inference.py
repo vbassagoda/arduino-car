@@ -34,7 +34,7 @@ def get_object_detection(object_name, turn=0, max_frames=3, capture_url=capture_
     
     Args:
         object_name: Name of the object to detect
-        turn: Turn number (used in filename)
+        turn: when searching 360 degrees for an object, which turn # is it (used in filename)
         max_frames: Maximum number of frames to process
         capture_url: URL to capture frames from
         timeout: Request timeout
@@ -73,7 +73,7 @@ def get_object_detection(object_name, turn=0, max_frames=3, capture_url=capture_
             continue # continue to the next frame
         
         # Run object detection
-        results = model(frame)
+        results = model(frame, conf=0.40)
         annotated_frame = results[0].plot() # Draw bounding boxes on frame
         
         # Save annotated frame with turn and frame number in filename

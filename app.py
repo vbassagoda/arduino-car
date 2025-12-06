@@ -85,7 +85,7 @@ def self_drive_to_object():
                 break
             else:
                 print(f"No object detected: {object_name}")
-                direction_sent = send_direction_to_arduino("R", 30)
+                direction_sent = send_direction_to_arduino("R", 40)
                 turns += 1
 
         if not object_detected:
