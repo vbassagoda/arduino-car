@@ -87,7 +87,7 @@ void loop() {
     } else {
       Serial.println("Unknown direction: " + direction);
     }
-    delay(100); // wait for motors to move
+    delay(200); // wait for motors to move
     stopMotors();
 
     // send response to flask backend
