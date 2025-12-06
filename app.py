@@ -1,5 +1,8 @@
 import socket
+import os
+import shutil
 from flask import Flask, render_template, request, jsonify
+from CameraWebServer.yolo_inference import get_object_detection
 
 # Arduino's IP address (from Arduino Serial Monitor)
 HOST_ARDUINO = "172.20.10.2"  # Use Your Arduino's IP. It will print when
@@ -18,14 +21,11 @@ def index():
     """Display the control interface"""
     return render_template('index.html', camera_url=CAMERA_STREAM_URL)
 
-@app.route('/direction', methods=['POST'])
-def direction():
-    """Handle direction button clicks"""
-    data = request.get_json()
-    direction = data.get('direction', '').upper()
-    speed = data.get('speed', 100)  # Default 100% speed
+def send_direction_to_arduino(direction, speed):
+    """Send direction command to Arduino via UDP"""
+    direction = direction.upper()
 
-    if direction in ['L', 'R', 'F', 'B']:
+    if direction in ["L", "R", "F", "B"]:
         print(f"Direction: {direction}, Speed: {speed}%")
 
         # Create a UDP socket
@@ -48,29 +48,66 @@ def direction():
         # Close the socket
         mySocket.close()
         print("Socket closed")
+        return True
+    else:
+        return False
 
+
+@app.route('/direction', methods=['POST'])
+def direction():
+    """Handle direction button clicks"""
+    data = request.get_json()
+    direction = data.get('direction', '').upper()
+    speed = data.get('speed', 100)  # Default 100% speed
+    
+    direction_sent = send_direction_to_arduino(direction, speed)
+    
+    if direction_sent:
         return jsonify({'success': True, 'message': f"Selected: {direction} at {speed}%"})
     else:
         return jsonify({'success': False, 'message': "Invalid direction"})
 
-
 @app.route('/self-drive-to-object', methods=['POST'])
 def self_drive_to_object():
     """Handle self-driving to object"""
+    # Clear all frames from previous search by deleting and recreating the directory
+    output_dir = "annotated_frames"
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+        print(f"Deleted previous annotated_frames directory")
+    os.makedirs(output_dir, exist_ok=True)
+    
     data = request.get_json()
     object_name = data.get('object_name', '').lower()
 
     if object_name in ['person', 'tv']:
         print(f"Self driving to object: {object_name}")
+
+        #call yolo_inference.py to get the object detection
+        object_detected = False
+        turns = 0
+        while turns < 6 and object_detected == False:
+            object_detected = get_object_detection(object_name, turn=turns)
+            if object_detected:
+                print(f"object detected: {object_name}") 
+                message = f'Found {object_name}'
+                break
+            else:
+                print(f"No object detected: {object_name}")
+                direction_sent = send_direction_to_arduino("R", 40)
+                turns += 1
+
+        if not object_detected:
+            message = f'Mission failed: {object_name} not found :('
         return jsonify({
-            'success': True,
-            'message': f'Self driving to {object_name}'
+            'success': object_detected,
+            'message': message
         })
     else:
         return jsonify({
             'success': False,
             'message': 'Invalid object name: ' + object_name
-        }), 400
+        })
 
 
 if __name__ == '__main__':
