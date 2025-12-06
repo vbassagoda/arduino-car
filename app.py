@@ -1,4 +1,6 @@
 import socket
+import os
+import shutil
 from flask import Flask, render_template, request, jsonify
 from CameraWebServer.yolo_inference import get_object_detection
 
@@ -68,6 +70,13 @@ def direction():
 @app.route('/self-drive-to-object', methods=['POST'])
 def self_drive_to_object():
     """Handle self-driving to object"""
+    # Clear all frames from previous search by deleting and recreating the directory
+    output_dir = "annotated_frames"
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+        print(f"Deleted previous annotated_frames directory")
+    os.makedirs(output_dir, exist_ok=True)
+    
     data = request.get_json()
     object_name = data.get('object_name', '').lower()
 
