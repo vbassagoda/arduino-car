@@ -1,5 +1,6 @@
 import socket
 from flask import Flask, render_template, request, jsonify
+from CameraWebServer.yolo_inference import get_object_detection
 
 # Arduino's IP address (from Arduino Serial Monitor)
 HOST_ARDUINO = "172.20.10.2"  # Use Your Arduino's IP. It will print when
@@ -18,9 +19,9 @@ def index():
     """Display the control interface"""
     return render_template('index.html', camera_url=CAMERA_STREAM_URL)
 
-def send_direction_to_arduino(direction_value, speed):
+def send_direction_to_arduino(direction, speed):
     """Send direction command to Arduino via UDP"""
-    direction_upper = direction_value.upper()
+    direction = direction.upper()
 
     if direction in ["L", "R", "F", "B"]:
         print(f"Direction: {direction}, Speed: {speed}%")
@@ -77,27 +78,26 @@ def self_drive_to_object():
         object_detected = False
         turns = 0
         while turns < 6 and object_detected == False:
-            object_detected = yolo_inference.get_object_detection(object_name, max_frames = 3)
+            object_detected = get_object_detection(object_name)
             if object_detected:
                 print(f"object detected: {object_name}") 
-                return jsonify({
-                    'success': True,
-                    'message': f'Found {object_name}'
-                })
+                message = f'Found {object_name}'
+                
             else:
                 print(f"No object detected: {object_name}")
                 direction_sent = send_direction_to_arduino("R", 100)
                 turns += 1
 
-                return jsonify({
-                    'success': False,
-                    'message': f'Mission failed: {object_name} not found :('
-                })
+            message = f'Mission failed: {object_name} not found :('
+        return jsonify({
+            'success': object_detected,
+            'message': message
+        })
     else:
         return jsonify({
             'success': False,
             'message': 'Invalid object name: ' + object_name
-        }), 400
+        })
 
 
 if __name__ == '__main__':
