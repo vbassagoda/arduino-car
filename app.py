@@ -78,16 +78,17 @@ def self_drive_to_object():
         object_detected = False
         turns = 0
         while turns < 6 and object_detected == False:
-            object_detected = get_object_detection(object_name)
+            object_detected = get_object_detection(object_name, turn=turns)
             if object_detected:
                 print(f"object detected: {object_name}") 
                 message = f'Found {object_name}'
-                
+                break
             else:
                 print(f"No object detected: {object_name}")
                 direction_sent = send_direction_to_arduino("R", 100)
                 turns += 1
 
+        if not object_detected:
             message = f'Mission failed: {object_name} not found :('
         return jsonify({
             'success': object_detected,

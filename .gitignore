@@ -10,4 +10,5 @@ CameraWebServer/yolov8n.pt
 CLAUDE.md
 CameraWebServer/__pycache__/
 yolov8n.pt
+annotated_frames/
 

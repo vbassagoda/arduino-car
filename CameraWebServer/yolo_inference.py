@@ -4,6 +4,7 @@ import numpy as np
 from ultralytics import YOLO  # For YOLOv8
 import urllib.request
 import time
+import os
 
 CAMERA_IP = "172.20.10.3"  # Replace with your ESP32-CAM IP
 capture_url = f"http://{CAMERA_IP}/capture"  # Single frame capture (port 80)
@@ -27,10 +28,27 @@ def test_camera_connection(capture_url, timeout = 5):
         print("Please check that the ESP32 camera is powered on and accessible")
         return e
 
-def get_object_detection(object_name, max_frames=3, capture_url=capture_url, timeout=5):
+def get_object_detection(object_name, turn=0, max_frames=3, capture_url=capture_url, timeout=5):
+    """
+    Detect objects in camera frames and save annotated frames locally.
+    
+    Args:
+        object_name: Name of the object to detect
+        turn: Turn number (used in filename)
+        max_frames: Maximum number of frames to process
+        capture_url: URL to capture frames from
+        timeout: Request timeout
+    
+    Returns:
+        bool: True if object was detected, False otherwise
+    """
     object_detected = False
     frame_count = 0
-    print(f"Processing {max_frames} frames...")
+    print(f"Processing {max_frames} frames for turn {turn}...")
+    
+    # Create directory for annotated frames if it doesn't exist
+    output_dir = "annotated_frames"
+    os.makedirs(output_dir, exist_ok=True)
 
     while frame_count < max_frames:
         try:
@@ -57,7 +75,12 @@ def get_object_detection(object_name, max_frames=3, capture_url=capture_url, tim
         # Run object detection
         results = model(frame)
         annotated_frame = results[0].plot() # Draw bounding boxes on frame
-        #cv2.imshow('YOLO Object Detection', annotated_frame) # Show frame
+        
+        # Save annotated frame with turn and frame number in filename
+        filename = f"turn_{turn}_frame_{frame_count + 1}.jpg"
+        filepath = os.path.join(output_dir, filename)
+        cv2.imwrite(filepath, annotated_frame)
+        print(f"Saved annotated frame: {filepath}")
 
         # search for the object in the frame
         if len(results[0].boxes) > 0:
@@ -76,7 +99,6 @@ def get_object_detection(object_name, max_frames=3, capture_url=capture_url, tim
         # Small delay between requests
         time.sleep(0.05)
 
-    #cv2.destroyAllWindows()
     print(f"\nDone! Processed {frame_count} frames total.")
     
     return object_detected
