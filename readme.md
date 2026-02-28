@@ -12,7 +12,6 @@ One time setup:
   #define SSID "[your wifi]"
   #define PASS "[your password]"
 
-
 Instructions:
 1) Connect the laptop to arduino
 2) Open car_directions.ino file in the arduino IDE and then upload code. 
@@ -23,9 +22,10 @@ Instructions:
 6) Get the camera IP from the arduino serial monitor and copy it into the app.py
 
 7) Connect the motor and arduino cables and put the batteries
-  - batteries go to ground and to VIN
-  - connect the motor controller cables to the Arduino digital PINs. Check car_directions.ino to see which pin numbers to connect.
-  - connect the camera to GND and 5V
+    - batteries go to ground and to VIN
+    - connect the motor controller cables to the Arduino digital PINs. Check car_directions.ino to see which pin numbers to connect.
+    - connect the camera to GND and 5V
+  <img src="https://github.com/user-attachments/assets/58d941a7-798c-4f4f-b426-5072e6de2d02" width="300" />
 
 8) Activate virtualenv and run python app.py
 9) Open html interface in browser in 0.0.0.0:5007
@@ -37,3 +37,4 @@ Notes:
 It can't handle the 2 power sources at the same time
 - To debug the camera you can go to the IP address of the camera and check the camera UI to see if the camera works. You might need to click "start stream". If it doesnt work try using another browser for both camera and the car UI endpoint
 - The camera only handles one stream at the same time, you cant have 2 apps/tools consuming it at the same time. (e.g. the car UI and the camera UI)
+
