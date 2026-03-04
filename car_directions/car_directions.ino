@@ -50,9 +50,6 @@ void setup() {
 
 void loop() {
   delay(100); // wait before checking for new packets
-  setSpeed(0);  // Stop motors
-  moveMotors(LOW, LOW, LOW, LOW);
-  delay(200); // wait for motors to stop
   if (udp.parsePacket()) {
     // read direction provided by user
     dataLen = udp.available();
@@ -90,7 +87,8 @@ void loop() {
     } else {
       Serial.println("Unknown direction: " + direction);
     }
-    delay(100);
+    delay(200); // wait for motors to move
+    stopMotors();
 
     // send response to flask backend
     response ="Here is your "+direction+" direction at speed "+String(motorSpeed);
@@ -99,6 +97,16 @@ void loop() {
     udp.endPacket();
     Serial.println("SENT: "+response);
   }
+  else {
+    Serial.println("No packet received");
+    stopMotors();
+  }
+}
+
+void stopMotors() {
+  setSpeed(0);
+  moveMotors(LOW, LOW, LOW, LOW);
+  delay(200); // wait for motors to stop
 }
 
 void moveMotors(int dir1, int dir2, int dir3, int dir4) {
