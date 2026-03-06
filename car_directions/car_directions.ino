@@ -4,8 +4,8 @@
 WiFiUDP udp;
 
 // connection to flask backend
-int PORT = 12345;
-char myPacket[255];
+int PORT_DIRECTION = 12345;
+char myPacketdirection[255];
 int dataLen;
 String direction;
 String response;
@@ -33,9 +33,9 @@ void setup() {
   Serial.println(WiFi.localIP()); // add ip address in app.py
   
   // start udp server
-  udp.begin(PORT);
+  udp.begin(PORT_DIRECTION);
   Serial.print("UDP Server started on port ");
-  Serial.print(PORT);
+  Serial.print(PORT_DIRECTION);
 
   // Set direction pins to output for both motors
   pinMode(IN1_PIN, OUTPUT);
@@ -53,9 +53,9 @@ void loop() {
   if (udp.parsePacket()) {
     // read direction provided by user
     dataLen = udp.available();
-    udp.read(myPacket,255);
-    myPacket[dataLen]=0;
-    direction=String(myPacket);
+    udp.read(myPacketdirection,255);
+    myPacketdirection[dataLen]=0;
+    direction=String(myPacketdirection);
     direction.trim();
     Serial.println("Received packet: "+direction);
 

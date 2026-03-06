@@ -7,7 +7,8 @@ from CameraWebServer.yolo_inference import get_object_detection
 # Arduino's IP address (from Arduino Serial Monitor)
 HOST_ARDUINO = "172.20.10.2"  # Use Your Arduino's IP. It will print when
                         #You Run the Arduino Server Program
-PORT = 12345            # Must match Arduino's UDP port
+PORT_DIRECTION = 12345            # Must match Arduino's UDP port for direction
+
 
 # ESP32-CAM IP address (from Serial Monitor after uploading CameraWebServer)
 HOST_CAMERA = "172.20.10.3"  # Update with your ESP32-CAM's IP
@@ -34,9 +35,9 @@ def send_direction_to_arduino(direction, speed):
 
         # Send direction and speed to Arduino (format: "F,75")
         packet = f"{direction},{speed}".encode()
-        print(f'Sending {packet} to HOST {HOST_ARDUINO}:{PORT}')
-        mySocket.sendto(packet, (HOST_ARDUINO, PORT))
-        print(f'Sent {direction} at {speed}% to HOST {HOST_ARDUINO}:{PORT}')
+        print(f'Sending {packet} to HOST {HOST_ARDUINO}:{PORT_DIRECTION}')
+        mySocket.sendto(packet, (HOST_ARDUINO, PORT_DIRECTION))
+        print(f'Sent {direction} at {speed}% to HOST {HOST_ARDUINO}:{PORT_DIRECTION}')
 
         # Try to get a response, skip on timeout
         try:
