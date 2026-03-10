@@ -11,15 +11,17 @@ String direction;
 String response;
 
 // Motor pins
-#define ENA_PIN 9   // Left motor enable (PWM for speed)
 #define ENB_PIN 3   // Right motor enable (PWM for speed)
-#define IN1_PIN 7   // Left forward
-#define IN2_PIN 6   // Left backward
-#define IN3_PIN 5   // Right forward
 #define IN4_PIN 4   // Right backward
+#define IN3_PIN 5   // Right forward
+#define IN2_PIN 6   // Left backward
+#define IN1_PIN 7   // Left forward
+#define ENA_PIN 9   // Left motor enable (PWM for speed)
+const int trigPin = 10;  // Trigger pin for ultrasonic sensor
+const int echoPin = 11;  // Echo pin for ultrasonic sensor
 
 int motorSpeed = 127;  // Default 50% speed (0-255)
-
+int distance_threshold = 10;
 
 void setup() {
   Serial.begin(9600);
@@ -46,6 +48,10 @@ void setup() {
   // Set enable pins to output (PWM for speed control)
   pinMode(ENA_PIN, OUTPUT);
   pinMode(ENB_PIN, OUTPUT);
+
+  // Set ultrasonic sensor pins to input
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
 }
 
 void loop() {
@@ -76,16 +82,19 @@ void loop() {
     setSpeed(motorSpeed);
 
     // move motors based on direction
-    if (direction == "B") {
-      moveMotors(HIGH, LOW, HIGH, LOW);  // Both motors forward
-    } else if (direction == "F") {
-      moveMotors(LOW, HIGH, LOW, HIGH);  // Both motors backward
-    } else if (direction == "R") {
-      moveMotors(LOW, LOW, LOW, HIGH);  // Left motor forward, right motor stop (turn right)
-    } else if (direction == "L") {
-      moveMotors(LOW, HIGH, LOW, LOW);  // Right motor forward, left motor stop (turn left)
-    } else {
-      Serial.println("Unknown direction: " + direction);
+    if (detect_collision()==false) {
+      Serial.println("No collision detected");
+      if (direction == "B") {
+        moveMotors(HIGH, LOW, HIGH, LOW);  // Both motors forward
+      } else if (direction == "F") {
+        moveMotors(LOW, HIGH, LOW, HIGH);  // Both motors backward
+      } else if (direction == "R") {
+        moveMotors(LOW, LOW, LOW, HIGH);  // Left motor forward, right motor stop (turn right)
+      } else if (direction == "L") {
+        moveMotors(LOW, HIGH, LOW, LOW);  // Right motor forward, left motor stop (turn left)
+      } else {
+        Serial.println("Unknown direction: " + direction);
+      }
     }
     delay(200); // wait for motors to move
     stopMotors();
@@ -122,3 +131,20 @@ void setSpeed(int speed) {
   analogWrite(ENA_PIN, speed);
   analogWrite(ENB_PIN, speed);
 }
+
+bool detect_collision() {
+	float duration, distance;
+	digitalWrite(trigPin, LOW);
+	delayMicroseconds(2);
+	digitalWrite(trigPin, HIGH);
+	delayMicroseconds(10);
+	digitalWrite(trigPin, LOW);
+	duration = pulseIn(echoPin, HIGH);  
+	distance = (duration * 0.0343) / 2;
+	
+	if (distance<distance_threshold) {
+		return true;
+	} else {
+		return false;
+	}
+};
