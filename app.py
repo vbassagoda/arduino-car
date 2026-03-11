@@ -8,7 +8,6 @@ from CameraWebServer.yolo_inference import get_object_detection
 HOST_ARDUINO = "172.20.10.2"  # Use Your Arduino's IP. It will print when
                         #You Run the Arduino Server Program
 PORT_DIRECTION = 12345            # Must match Arduino's UDP port for direction
-PORT_COLLISION = 12346            # Must match Arduino's UDP port for collision
 
 # ESP32-CAM IP address (from Serial Monitor after uploading CameraWebServer)
 HOST_CAMERA = "172.20.10.3"  # Update with your ESP32-CAM's IP
@@ -21,17 +20,6 @@ app = Flask(__name__)
 def index():
     """Display the control interface"""
     return render_template('index.html', camera_url=CAMERA_STREAM_URL)
-
-def ask_arduino_collision_sensor():
-    """Ask arduino to check for collision"""
-    mySocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    mySocket.settimeout(5.0)
-    packet = "ASK".encode()
-    mySocket.sendto(packet, (HOST_ARDUINO, PORT_COLLISION))
-    print(f'Sent {packet} to HOST {HOST_ARDUINO}:{PORT_COLLISION}')
-    response, server_address = mySocket.recvfrom(1024)
-    print("Server response:", response.decode())
-    return float(response.decode())
 
 def send_direction_to_arduino(direction, speed):
     """Send direction command to Arduino via UDP"""
@@ -103,11 +91,6 @@ def self_drive_to_object():
             if object_detected:
                 print(f"object detected: {object_name}") 
                 message = f'Found {object_name}'
-                break
-            elif ask_arduino_collision_sensor() < 10:
-                message = "Collision detected, stopping car"
-                print(message) 
-                #TODO: print message on UI
                 break
             else:
                 print(f"No object detected: {object_name}")
