@@ -21,7 +21,7 @@ const int trigPin = 10;  // Trigger pin for ultrasonic sensor
 const int echoPin = 11;  // Echo pin for ultrasonic sensor
 
 int motorSpeed = 127;  // Default 50% speed (0-255)
-int distance_threshold = 10;
+int distance_threshold = 40;
 
 void setup() {
   Serial.begin(9600);
@@ -80,9 +80,11 @@ void loop() {
 
     // set motor speed
     setSpeed(motorSpeed);
+    float distance = detect_distance();
+    Serial.println("Distance: "+String(distance));
 
     // move motors based on direction
-    if (detect_collision()==false) {
+    if (distance > distance_threshold) {
       Serial.println("No collision detected");
       if (direction == "B") {
         moveMotors(HIGH, LOW, HIGH, LOW);  // Both motors forward
@@ -93,18 +95,19 @@ void loop() {
       } else if (direction == "L") {
         moveMotors(LOW, HIGH, LOW, LOW);  // Right motor forward, left motor stop (turn left)
       } else {
-        Serial.println("Unknown direction: " + direction);
+        Serial.println("Unknown direction : " + direction);
       }
     }
     delay(200); // wait for motors to move
     stopMotors();
 
-    // send response to flask backend
-    response ="Here is your "+direction+" direction at speed "+String(motorSpeed);
+    // send JSON response to flask backend
+    response = "{\"direction\":\"" + direction + "\",\"speed\":" + String(motorSpeed) + ",\"distance\":" + String(distance, 2) + "}";
+
     udp.beginPacket(udp.remoteIP(), udp.remotePort());
     udp.print(response);
     udp.endPacket();
-    Serial.println("SENT: "+response);
+    Serial.println("SENT: " + response);
   }
   else {
     Serial.println("No packet received");
@@ -132,7 +135,7 @@ void setSpeed(int speed) {
   analogWrite(ENB_PIN, speed);
 }
 
-bool detect_collision() {
+float detect_distance() {
 	float duration, distance;
 	digitalWrite(trigPin, LOW);
 	delayMicroseconds(2);
@@ -142,9 +145,5 @@ bool detect_collision() {
 	duration = pulseIn(echoPin, HIGH);  
 	distance = (duration * 0.0343) / 2;
 	
-	if (distance<distance_threshold) {
-		return true;
-	} else {
-		return false;
-	}
+  return distance;
 };

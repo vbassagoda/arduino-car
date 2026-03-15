@@ -236,7 +236,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showStatus(data.message, 'success');
+                    showStatus(`Direction: ${data.direction} | Speed: ${data.speed} | Distance: ${data.distance}`, 'success');
                 } else {
                     showStatus(data.message, 'error');
                 }

@@ -1,5 +1,6 @@
 import socket
 import os
+import json
 import shutil
 from flask import Flask, render_template, request, jsonify
 from CameraWebServer.yolo_inference import get_object_detection
@@ -16,16 +17,23 @@ CAMERA_STREAM_URL = f"http://{HOST_CAMERA}:81/stream"
 # Flask app
 app = Flask(__name__)
 
+stop_distance = 40
+
 @app.route('/')
 def index():
     """Display the control interface"""
     return render_template('index.html', camera_url=CAMERA_STREAM_URL)
 
 def send_direction_to_arduino(direction, speed):
-    """Send direction command to Arduino via UDP"""
+    """Send direction command to Arduino via UDP.
+    Returns (direction, speed, distance) on success, or (None, None, None) on failure.
+    """
     direction = direction.upper()
+    
+    if direction not in ["L", "R", "F", "B"]:
+        return None, None, None
 
-    if direction in ["L", "R", "F", "B"]:
+    else:
         print(f"Direction: {direction}, Speed: {speed}%")
 
         # Create a UDP socket
@@ -43,14 +51,17 @@ def send_direction_to_arduino(direction, speed):
             print('Waiting for response from server')
             response, server_address = mySocket.recvfrom(1024)
             print("Server response:", response.decode())
+            response_data = json.loads(response.decode())
+            return response_data["direction"], response_data["speed"], response_data["distance"]
         except socket.timeout:
             print("No response received from server within 5 seconds")
-        # Close the socket
-        mySocket.close()
-        print("Socket closed")
-        return True
-    else:
-        return False
+            return None, None, None
+        except json.JSONDecodeError:
+            print("Failed to parse JSON response:", response.decode())
+            return None, None, None
+        finally:
+            # Close the socket
+            mySocket.close()
 
 
 @app.route('/direction', methods=['POST'])
@@ -60,10 +71,15 @@ def direction():
     direction = data.get('direction', '').upper()
     speed = data.get('speed', 100)  # Default 100% speed
     
-    direction_sent = send_direction_to_arduino(direction, speed)
+    resp_direction, resp_speed, resp_distance = send_direction_to_arduino(direction, speed)
     
-    if direction_sent:
-        return jsonify({'success': True, 'message': f"Selected: {direction} at {speed}%"})
+    if resp_direction is not None:
+        return jsonify({
+            'success': True,
+            'direction': resp_direction,
+            'speed': resp_speed,
+            'distance': resp_distance,
+        })
     else:
         return jsonify({'success': False, 'message': "Invalid direction"})
 
@@ -86,15 +102,29 @@ def self_drive_to_object():
         #call yolo_inference.py to get the object detection
         object_detected = False
         turns = 0
-        while turns < 6 and object_detected == False:
+        while turns < 15 and object_detected == False:
             object_detected = get_object_detection(object_name, turn=turns)
             if object_detected:
                 print(f"object detected: {object_name}") 
                 message = f'Found {object_name}'
-                break
+                while True:
+                    object_detected = get_object_detection(object_name, turn=turns)
+                    print(f"object detected: {object_name}") 
+                    if object_detected:
+                        resp_dir, resp_spd, resp_dist = send_direction_to_arduino("F", 40)
+                        print(f"Direction: {resp_dir}, Speed: {resp_spd}, Distance: {resp_dist}")
+
+                    else:
+                        resp_dir, resp_spd, resp_dist = send_direction_to_arduino("R", 70)
+                        print(f"Direction: {resp_dir}, Speed: {resp_spd}, Distance: {resp_dist}")
+                       
+                    distance = resp_dist if resp_dist is not None else 0 
+                    if distance < stop_distance:
+                        break
             else:
                 print(f"No object detected: {object_name}")
-                direction_sent = send_direction_to_arduino("R", 40)
+                resp_dir, resp_spd, resp_dist = send_direction_to_arduino("R", 70)
+                print(f"Direction: {resp_dir}, Speed: {resp_spd}, Distance: {resp_dist}")
                 turns += 1
 
         if not object_detected:
