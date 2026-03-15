@@ -1,7 +1,7 @@
 # Process images from the ESP32-CAM with openCV 
 import cv2
 import numpy as np
-from ultralytics import YOLO  # For YOLOv8
+from ultralytics import YOLO  # For YOLO26
 import urllib.request
 import time
 import os
@@ -9,9 +9,9 @@ import os
 CAMERA_IP = "172.20.10.3"  # Replace with your ESP32-CAM IP
 capture_url = f"http://{CAMERA_IP}/capture"  # Single frame capture (port 80)
 
-# Load the YOLOv8 model
+# Load the YOLO26 model
 print("Loading YOLO model...")
-model = YOLO("yolov8n.pt")
+model = YOLO("yolo26n.pt")
 
 def test_camera_connection(capture_url, timeout = 5):
     print(f"Testing connection to {capture_url}...")
